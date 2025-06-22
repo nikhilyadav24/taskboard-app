@@ -15,16 +15,23 @@ const TaskModal = ({ task = null, onSave, onCancel, columnId, currentUser, users
     priority: task?.priority || 'medium',
     dueDate: task?.dueDate || '',
     assignedTo: initialAssignees,
-    createdBy: task?.createdBy || (currentUser?.id || '')
+    createdBy: task?.createdBy || (currentUser?._id || '')
   });
 
   useEffect(() => {
-    setFormData(prev => ({ ...prev, createdBy: currentUser?.id || '' }));
+    setFormData(prev => ({ ...prev, createdBy: currentUser?._id || '' }));
   }, [currentUser]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const finalFormData = { ...formData, createdBy: currentUser?.id || '' };
+    const finalFormData = {
+      ...formData,
+      assignedTo: formData.assignedTo.map(id => {
+        const user = users.find(u => u.id === id || u._id === id);
+        return user ? (user.id || user._id) : id;
+      }),
+      createdBy: currentUser?._id || ''
+    };
     console.log('Saving task with formData:', finalFormData);
     if (finalFormData.title.trim()) {
       const taskData = {

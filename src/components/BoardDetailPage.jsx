@@ -154,14 +154,14 @@ const BoardDetailPage = ({ board, onBack, onUpdateBoard, currentUser, users }) =
   };
 
   const addTask = (columnId, taskData) => {
-    const newTask = { ...taskData, columnId, createdBy: currentUser?.id };
+    const newTask = { ...taskData, columnId, createdBy: currentUser?._id };
     setTasks([...tasks, newTask]);
     setEditingTask(null);
   };
 
   const editTask = (taskData) => {
     setTasks(tasks.map(task => 
-      task.id === taskData.id ? taskData : task
+      task.id === taskData.id ? { ...taskData, createdBy: taskData.createdBy || currentUser?._id } : task
     ));
     setEditingTask(null);
   };
@@ -172,9 +172,10 @@ const BoardDetailPage = ({ board, onBack, onUpdateBoard, currentUser, users }) =
     }
   };
 
-  // Save board state
+  // Defensive: filter out tasks with missing createdBy before saving
   useEffect(() => {
-    onUpdateBoard({ ...board, columns, tasks });
+    const safeTasks = tasks.filter(task => !!task.createdBy);
+    onUpdateBoard({ ...board, columns, tasks: safeTasks });
   }, [columns, tasks]);
 
   return (
@@ -199,7 +200,7 @@ const BoardDetailPage = ({ board, onBack, onUpdateBoard, currentUser, users }) =
                 }`}
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
-                <span className="hidden sm:inline">Back to Boards</span>
+                <span className="hidden sm:inline">Back</span>
                 <span className="sm:hidden">Back</span>
               </button>
               <div className={`ml-4 pl-4 border-l ${
@@ -219,7 +220,7 @@ const BoardDetailPage = ({ board, onBack, onUpdateBoard, currentUser, users }) =
             </div>
             
             {/* Theme Toggle */}
-            <button
+            {/* <button
               onClick={toggleTheme}
               className={`p-2 rounded-lg transition-colors ${
                 isDark 
@@ -228,7 +229,7 @@ const BoardDetailPage = ({ board, onBack, onUpdateBoard, currentUser, users }) =
               }`}
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

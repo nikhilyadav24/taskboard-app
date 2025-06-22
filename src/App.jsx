@@ -3,8 +3,10 @@ import io from 'socket.io-client';
 import BoardView from './components/BoardView';
 import BoardDetailPage from './components/BoardDetailPage';
 import LoginPage from './components/LoginPage';
+import SignupPage from './components/SignupPage';
 import { BACKEND_URL } from './constants/config';
 import { useTheme } from './contexts/ThemeContext';
+import FeatureOnboardingModal from './components/FeatureOnboardingModal';
 
 const socket = io(BACKEND_URL);
 
@@ -15,13 +17,23 @@ const TaskBoardApp = () => {
   const [selectedBoard, setSelectedBoard] = useState(null);
   const [boards, setBoards] = useState([]);
   const [users, setUsers] = useState([]);
+  const [showSignup, setShowSignup] = useState(false);
   const { isDark, toggleTheme } = useTheme();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [pendingOnboarding, setPendingOnboarding] = useState(false);
 
   // Fetch users from backend
   const fetchUsers = () => {
     fetch(`${BACKEND_URL}/api/users`)
       .then(res => res.json())
-      .then(data => setUsers(data.filter(u => u && u.id && u.name)));
+      .then(data => setUsers(data.map(u => ({ ...u, id: u.id || u._id }))));
+  };
+
+  // Fetch boards from backend
+  const fetchBoards = () => {
+    fetch(`${BACKEND_URL}/api/boards`)
+      .then(res => res.json())
+      .then(data => setBoards(data));
   };
 
   useEffect(() => {
@@ -46,14 +58,20 @@ const TaskBoardApp = () => {
     };
   }, []);
 
-  const handleLogin = (userData) => {
-    console.log('Logged in user:', userData);
-    setUser(userData);
-    fetchUsers(); // Refresh user list after login
-  };
+  useEffect(() => {
+    if (user) fetchBoards();
+  }, [user]);
+
+  useEffect(() => {
+    if (user && !localStorage.getItem('hasSeenOnboarding')) {
+      setShowOnboarding(true);
+    }
+  }, [user]);
 
   const handleLogout = () => {
     setUser(null);
+    setCurrentView('boards');
+    setSelectedBoard(null);
   };
 
   const handleCreateBoard = (board) => {
@@ -89,16 +107,43 @@ const TaskBoardApp = () => {
     setSelectedBoard(null);
   };
 
+  const handleCloseOnboarding = () => {
+    setShowOnboarding(false);
+  };
+
+  // Custom signup handler to trigger onboarding
+  const handleSignup = (userData) => {
+    setUser(userData);
+    setPendingOnboarding(true);
+    setCurrentView('boards');
+    setSelectedBoard(null);
+  };
+
+  // Custom login handler to reset view
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setCurrentView('boards');
+    setSelectedBoard(null);
+  };
+
+  useEffect(() => {
+    if (user && pendingOnboarding) {
+      setShowOnboarding(true);
+      setPendingOnboarding(false);
+    }
+  }, [user, pendingOnboarding]);
+
   if (!user) {
-    return (
-      <LoginPage onLogin={handleLogin} />
-    );
+    return showSignup
+      ? <SignupPage onSignup={handleSignup} onSwitchToLogin={() => setShowSignup(false)} />
+      : <LoginPage onLogin={handleLogin} onSwitchToSignup={() => setShowSignup(true)} />;
   }
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
       isDark ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-gray-50 to-gray-100'
     }`}>
+      {showOnboarding && <FeatureOnboardingModal onClose={handleCloseOnboarding} />}
       {/* Modern Header */}
       <div className="glass-effect border-b border-gray-200/50 dark:border-gray-700/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">

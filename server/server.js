@@ -1,125 +1,190 @@
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require("socket.io");
 const cors = require('cors');
+const connectDB = require('./config/db');
+const seedDatabase = require('./utils/seed');
+
+// Models
+const User = require('./models/User');
+const Board = require('./models/Board');
+
+// Connect to MongoDB
+connectDB().then(() => {
+  // Seed database with initial data if it's empty
+  seedDatabase();
+});
 
 const app = express();
+
+// --- CORS Configuration ---
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',');
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"]
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const server = http.createServer(app);
-
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',');
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  methods: ["GET", "POST"]
-};
-
-// Use CORS for Express
-app.use(cors(corsOptions));
-
-const io = new Server(server, {
-  cors: corsOptions
-});
-
-// --- USERS ---
-let users = [
-  { id: 'u1', name: 'Nikhil Yadav', username: 'nikhilyadav', password: 'password1', avatar: 'NY' },
-  { id: 'u2', name: 'Emitrr', username: 'emitrr', password: 'password', avatar: 'E' },
-  { id: 'u3', name: 'Priya Sharma', username: 'priyasharma', password: 'password2', avatar: 'PS' },
-  { id: 'u4', name: 'Aman Gupta', username: 'amangupta', password: 'password3', avatar: 'AG' }
-];
-
-// --- BOARDS ---
-let boardData = {
-  boards: [
-    {
-      id: '1',
-      title: 'Website Redesign Project',
-      description: 'Complete redesign of with modern UI/UX',
-      createdAt: '2024-01-15T10:00:00Z',
-      columns: [
-        { id: '1', title: 'To Do', createdAt: '2024-01-15T10:00:00Z' },
-        { id: '2', title: 'In Progress', createdAt: '2024-01-15T10:00:00Z' },
-        { id: '3', title: 'Review', createdAt: '2024-01-15T10:00:00Z' },
-        { id: '4', title: 'Done', createdAt: '2024-01-15T10:00:00Z' }
-      ],
-      tasks: [
-        {
-          id: '1',
-          title: 'Create wireframes for homepage',
-          description: 'Design **wireframes** for the new homepage layout with focus on *user experience*',
-          priority: 'high',
-          dueDate: '2024-02-01',
-          assignedTo: ['u1', 'u2'],
-          createdBy: 'u2',
-          columnId: '1',
-          createdAt: '2024-01-15T10:30:00Z',
-          updatedAt: '2024-01-15T10:30:00Z'
-        },
-        // ... more tasks
-      ]
-    },
-    // ... more boards
-  ]
-};
+const io = new Server(server, { cors: corsOptions });
 
 // --- USER ENDPOINTS ---
-app.get('/api/users', (req, res) => {
-  res.json(users.map(u => ({ ...u, password: undefined })));
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-app.post('/api/signup', (req, res) => {
+app.post('/api/signup', async (req, res) => {
   const { name, username, password } = req.body;
-  if (!name || !username || !password) {
-    return res.status(400).json({ error: 'All fields required' });
+  try {
+    if (!name || !username || !password) {
+      return res.status(400).json({ error: 'All fields required' });
+    }
+    let user = await User.findOne({ username });
+    if (user) {
+      return res.status(409).json({ error: 'Username already exists' });
+    }
+    const avatar = name.split(' ').map(w => w[0]).join('').toUpperCase();
+    
+    // In a real app, you would hash the password here
+    user = new User({ name, username, password, avatar });
+    await user.save();
+    
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    res.status(201).json(userResponse);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
   }
-  if (users.find(u => u.username === username)) {
-    return res.status(409).json({ error: 'Username already exists' });
-  }
-  const id = 'u' + (users.length + 1);
-  const avatar = name.split(' ').map(w => w[0]).join('').toUpperCase();
-  const user = { id, name, username, password, avatar };
-  users.push(user);
-  res.json({ ...user, password: undefined });
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
-  const user = users.find(u => u.username === username && u.password === password);
-  if (!user) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+  try {
+    const user = await User.findOne({ username });
+    // In a real app, you would compare hashed passwords
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    res.json(userResponse);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
   }
-  res.json({ ...user, password: undefined });
+});
+
+// Delete user and clean up references
+app.delete('/api/users/:id', async (req, res) => {
+  const userId = req.params.id;
+  try {
+    // Delete the user
+    await User.findByIdAndDelete(userId);
+    // Remove user from assignedTo and createdBy in all boards' tasks
+    const boards = await Board.find();
+    for (const board of boards) {
+      let changed = false;
+      board.tasks = board.tasks.map(task => {
+        // Remove from assignedTo
+        const newAssignedTo = Array.isArray(task.assignedTo)
+          ? task.assignedTo.filter(uid => String(uid) !== String(userId))
+          : [];
+        // Remove as creator
+        const newCreatedBy = String(task.createdBy) === String(userId) ? null : task.createdBy;
+        if (newAssignedTo.length !== task.assignedTo.length || newCreatedBy !== task.createdBy) changed = true;
+        return { ...task, assignedTo: newAssignedTo, createdBy: newCreatedBy };
+      });
+      if (changed) await board.save();
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // --- BOARD ENDPOINTS ---
-app.get('/api/boards', (req, res) => {
-  res.json(boardData.boards);
+// This endpoint now primarily serves for checking board existence or basic info
+app.get('/api/boards', async (req, res) => {
+    try {
+        // Fetch all boards
+        const boards = await Board.find().populate('tasks.assignedTo', '-password').populate('tasks.createdBy', '-password');
+        if (!boards || boards.length === 0) {
+            return res.status(404).json({ error: 'No boards found' });
+        }
+        res.json(boards);
+    } catch (err) {
+        res.status(500).json({ error: 'Server error fetching boards' });
+    }
 });
 
+
+// --- SOCKET.IO LOGIC ---
 io.on('connection', (socket) => {
-  console.log('a user connected');
+  console.log('A user connected with socket ID:', socket.id);
+
+  const sendBoardData = async () => {
+    try {
+      // Fetch all boards
+      const boards = await Board.find()
+        .populate('tasks.assignedTo', 'id name avatar')
+        .populate('tasks.createdBy', 'id name avatar');
+      if(boards && boards.length > 0) {
+        const boardData = { boards };
+        socket.emit('initial_data', boardData);
+      } else {
+        console.log("No board data to send.");
+        socket.emit('initial_data', { boards: [] });
+      }
+    } catch (err) {
+      console.error("Error fetching board data for socket:", err);
+    }
+  };
 
   // Send the current board data to the new client
-  socket.emit('initial_data', boardData);
+  sendBoardData();
 
-  socket.on('update_board', (newBoardData) => {
-    boardData = newBoardData;
-    // Broadcast the updated data to all other clients
-    socket.broadcast.emit('board_updated', boardData);
+  socket.on('update_board', async (newBoardData) => {
+    try {
+        if (newBoardData && newBoardData.boards && newBoardData.boards.length > 0) {
+            // Upsert all boards in the array
+            const updatedBoards = [];
+            for (const boardToUpdate of newBoardData.boards) {
+              // Defensive: filter out tasks with missing createdBy
+              boardToUpdate.tasks = Array.isArray(boardToUpdate.tasks)
+                ? boardToUpdate.tasks.filter(task => !!task.createdBy)
+                : [];
+              const updatedBoard = await Board.findOneAndUpdate(
+                { id: boardToUpdate.id },
+                boardToUpdate,
+                { new: true, upsert: true, runValidators: true }
+              )
+              .populate('tasks.assignedTo', 'id name avatar')
+              .populate('tasks.createdBy', 'id name avatar');
+              updatedBoards.push(updatedBoard);
+            }
+            // Broadcast the updated data to all other clients
+            const dataToSend = { boards: updatedBoards };
+            socket.broadcast.emit('board_updated', dataToSend);
+        }
+    } catch (err) {
+        console.error('Error updating board:', err);
+    }
   });
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
+    console.log('User disconnected:', socket.id);
   });
 });
 

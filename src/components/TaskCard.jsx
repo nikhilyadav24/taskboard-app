@@ -13,17 +13,17 @@ const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/users`)
       .then(res => res.json())
-      .then(data => setUsers(data.filter(u => u && u.id && u.name)));
+      .then(data => setUsers(data.map(u => ({ ...u, id: u.id || u._id })).filter(u => u && u.id && u.name)));
   }, []);
 
   const assigneeIds = Array.isArray(task.assignedTo) ? task.assignedTo : 
                      task.assignedTo ? [task.assignedTo] : [];
 
   const assignedUsers = assigneeIds.map(id => 
-    users.find(member => member.id === id)
+    users.find(member => member.id === id || member._id === id)
   ).filter(Boolean);
 
-  const creator = users.find(member => member.id === task.createdBy);
+  const creator = users.find(member => member.id === task.createdBy || member._id === task.createdBy);
   const priorityConfig = PRIORITY_CONFIG[task.priority];
 
   return (
@@ -69,7 +69,7 @@ const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
         {assignedUsers.length > 0 && (
           <div className="flex items-center space-x-1">
             {assignedUsers.slice(0, 2).map(user => (
-              <div key={user.id} className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium" title={user.name}>
+              <div key={user._id || user.id} className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium" title={user.name}>
                 {user.avatar}
               </div>
             ))}

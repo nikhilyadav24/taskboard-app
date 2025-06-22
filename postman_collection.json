@@ -1,0 +1,189 @@
+{
+  "info": {
+    "_postman_id": "b1e2c3d4-5678-1234-9abc-def012345678",
+    "name": "Taskboard API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Signup",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpass\",\n  \"name\": \"Test User\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/signup",
+          "host": ["{{base_url}}"],
+          "path": ["api", "signup"]
+        }
+      }
+    },
+    {
+      "name": "User Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"testpass\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "login"]
+        }
+      }
+    },
+    {
+      "name": "Get All Users",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/users",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users"]
+        }
+      }
+    },
+    {
+      "name": "Get All Boards",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/boards",
+          "host": ["{{base_url}}"],
+          "path": ["api", "boards"]
+        }
+      }
+    },
+    {
+      "name": "Create Board",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"New Board\",\n  \"description\": \"A sample board\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/boards",
+          "host": ["{{base_url}}"],
+          "path": ["api", "boards"]
+        }
+      }
+    },
+    {
+      "name": "Get Board by ID",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/boards/:boardId",
+          "host": ["{{base_url}}"],
+          "path": ["api", "boards", ":boardId"]
+        }
+      }
+    },
+    {
+      "name": "Update Board",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Board\",\n  \"description\": \"Updated description\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/boards/:boardId",
+          "host": ["{{base_url}}"],
+          "path": ["api", "boards", ":boardId"]
+        }
+      }
+    },
+    {
+      "name": "Delete Board",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "{{base_url}}/api/boards/:boardId",
+          "host": ["{{base_url}}"],
+          "path": ["api", "boards", ":boardId"]
+        }
+      }
+    },
+    {
+      "name": "Get All Tasks for Board",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/api/boards/:boardId/tasks",
+          "host": ["{{base_url}}"],
+          "path": ["api", "boards", ":boardId", "tasks"]
+        }
+      }
+    },
+    {
+      "name": "Create Task",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"New Task\",\n  \"description\": \"Task details\",\n  \"status\": \"todo\",\n  \"priority\": \"medium\",\n  \"assignedTo\": [\"userId1\"],\n  \"createdBy\": \"userId2\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/boards/:boardId/tasks",
+          "host": ["{{base_url}}"],
+          "path": ["api", "boards", ":boardId", "tasks"]
+        }
+      }
+    },
+    {
+      "name": "Update Task",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Updated Task\",\n  \"description\": \"Updated details\",\n  \"status\": \"inprogress\",\n  \"priority\": \"high\",\n  \"assignedTo\": [\"userId1\"],\n  \"createdBy\": \"userId2\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/boards/:boardId/tasks/:taskId",
+          "host": ["{{base_url}}"],
+          "path": ["api", "boards", ":boardId", "tasks", ":taskId"]
+        }
+      }
+    },
+    {
+      "name": "Delete Task",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "{{base_url}}/api/boards/:boardId/tasks/:taskId",
+          "host": ["{{base_url}}"],
+          "path": ["api", "boards", ":boardId", "tasks", ":taskId"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001"
+    }
+  ]
+} 

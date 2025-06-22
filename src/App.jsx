@@ -119,13 +119,14 @@ const TaskBoardApp = () => {
     setSelectedBoard(null);
   };
 
-  // Custom login handler to reset view
+  // Custom login handler to reset view (no onboarding)
   const handleLogin = (userData) => {
     setUser(userData);
     setCurrentView('boards');
     setSelectedBoard(null);
   };
 
+  // Only show onboarding when pendingOnboarding is set (from signup)
   useEffect(() => {
     if (user && pendingOnboarding) {
       setShowOnboarding(true);
@@ -151,8 +152,17 @@ const TaskBoardApp = () => {
             {/* Logo and Brand */}
             <div className="flex items-center space-x-3 sm:space-x-4">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center modern-shadow">
-                <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="taskboard-logo-gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#3b82f6" />
+                      <stop offset="1" stop-color="#a21caf" />
+                    </linearGradient>
+                  </defs>
+                  <rect x="4" y="4" width="24" height="24" rx="6" fill="url(#taskboard-logo-gradient)" />
+                  <rect x="9" y="9" width="4" height="14" rx="2" fill="#fff" />
+                  <rect x="15" y="9" width="4" height="10" rx="2" fill="#fff" />
+                  <rect x="21" y="9" width="4" height="6" rx="2" fill="#fff" />
                 </svg>
               </div>
               <div>

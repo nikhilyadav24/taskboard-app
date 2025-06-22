@@ -1,8 +1,14 @@
 # Task Board Application
 
-A modern, feature-rich, and real-time collaborative task management application built with React, Node.js, and Tailwind CSS. This project was developed as a solution to the provided assignment, meeting all mandatory requirements and implementing the full suite of bonus features.
+A modern, feature-rich, and real-time collaborative task management application built with React, Node.js, and Tailwind CSS.
 
-**Live Demo:** [**https://your-deployment-link.vercel.app/**](https://your-deployment-link.vercel.app/)
+---
+
+## 🚀 Live Demo
+
+**Try it here:** [https://taskboard-app-n.vercel.app/](https://taskboard-app-n.vercel.app/)
+
+---
 
 ## 📋 Features Checklist
 

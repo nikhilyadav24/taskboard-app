@@ -111,7 +111,7 @@ const TaskModal = ({ task = null, onSave, onCancel, columnId, currentUser, users
                 <span className="text-xs text-gray-400">No users available</span>
               ) : (
                 <>
-                  {users.slice(0, 4).map(member => (
+                  {users.map(member => (
                     <label key={member.id} className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-600 rounded-lg px-2 py-1 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors">
                       <input
                         type="checkbox"
@@ -125,9 +125,6 @@ const TaskModal = ({ task = null, onSave, onCancel, columnId, currentUser, users
                       <span className="text-xs dark:text-gray-200 truncate max-w-20">{member.name}</span>
                     </label>
                   ))}
-                  {users.length > 4 && (
-                    <span className="text-xs text-gray-500 self-center">+{users.length - 4} more</span>
-                  )}
                 </>
               )}
             </div>

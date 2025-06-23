@@ -7,7 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { BACKEND_URL } from '../constants/config';
 
 const BoardDetailPage = ({ board, onBack, onUpdateBoard, currentUser, users }) => {
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark} = useTheme();
   const [columns, setColumns] = useState(board.columns || []);
   const [tasks, setTasks] = useState(board.tasks || []);
   const [editingTask, setEditingTask] = useState(null);
@@ -238,36 +238,35 @@ const BoardDetailPage = ({ board, onBack, onUpdateBoard, currentUser, users }) =
       <div className={`border-b ${
         isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="relative">
-                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
-                  isDark ? 'text-gray-400' : 'text-gray-400'
-                }`} />
-                <input
-                  type="text"
-                  placeholder="Search tasks..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
-                    isDark 
-                      ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400' 
-                      : 'border-gray-300 text-gray-900 placeholder-gray-500'
-                  }`}
-                />
-              </div>
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col gap-4">
+            <div className="relative mb-2">
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
+                isDark ? 'text-gray-400' : 'text-gray-400'
+              }`} />
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={`pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400' 
+                    : 'border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
+              />
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            {/* Horizontal scrollable filters on mobile */}
+            <div className="flex flex-row gap-2 overflow-x-auto pb-2 -mx-2 px-2 sm:mx-0 sm:px-0">
               <select
                 value={sortBy}
                 onChange={(e) => handleSortChange(e.target.value)}
-                className={`px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                className={`px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm flex-shrink-0 ${
                   isDark 
                     ? 'bg-gray-700 border-gray-600 text-gray-100' 
                     : 'border-gray-300 text-gray-900'
                 }`}
+                style={{ minWidth: 140 }}
               >
                 <option value="createdAt">Sort by Created</option>
                 <option value="dueDate">Sort by Due Date</option>
@@ -278,11 +277,12 @@ const BoardDetailPage = ({ board, onBack, onUpdateBoard, currentUser, users }) =
               <select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
-                className={`px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                className={`px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm flex-shrink-0 ${
                   isDark 
                     ? 'bg-gray-700 border-gray-600 text-gray-100' 
                     : 'border-gray-300 text-gray-900'
                 }`}
+                style={{ minWidth: 140 }}
               >
                 <option value="all">All Priorities</option>
                 <option value="high">High Priority</option>
@@ -293,11 +293,12 @@ const BoardDetailPage = ({ board, onBack, onUpdateBoard, currentUser, users }) =
               <select
                 value={assigneeFilter}
                 onChange={(e) => setAssigneeFilter(e.target.value)}
-                className={`px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                className={`px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm flex-shrink-0 ${
                   isDark 
                     ? 'bg-gray-700 border-gray-600 text-gray-100' 
                     : 'border-gray-300 text-gray-900'
                 }`}
+                style={{ minWidth: 140 }}
               >
                 <option value="all">All Assignees</option>
                 {users.map(member => (
@@ -311,8 +312,8 @@ const BoardDetailPage = ({ board, onBack, onUpdateBoard, currentUser, users }) =
 
       {/* Board Content */}
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="p-2 sm:p-4 lg:p-6">
-          <div className="flex gap-3 sm:gap-4 lg:gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <div className="p-1 sm:p-4 lg:p-6">
+          <div className="flex gap-2 sm:gap-4 lg:gap-6 overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 w-full min-w-0">
             {columns.map(column => (
               <Column
                 key={column.id}

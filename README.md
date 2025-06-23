@@ -76,19 +76,19 @@ To run this project locally, follow these steps:
 
 ### 2. Clone the Repository
 
-```bash
+   ```bash
 git clone https://github.com/your-username/your-repo-name.git
 cd your-repo-name
-```
+   ```
 
 ### 3. Install Dependencies
 
 Install dependencies for both the server and the client.
 
-```bash
+   ```bash
 # Install server dependencies
-cd server
-npm install
+   cd server
+   npm install
 
 # Install client dependencies
 cd ../
@@ -109,17 +109,17 @@ VITE_BACKEND_URL=http://localhost:3001
 You need to run two separate commands in two separate terminals.
 
 - **Terminal 1: Start the Backend Server**
-  ```bash
-  cd server
-  npm start
-  ```
+   ```bash
+   cd server
+   npm start
+   ```
   The server will be running at `http://localhost:3001`.
 
 - **Terminal 2: Start the Frontend Client**
-  ```bash
+   ```bash
   # From the root directory
-  npm run dev
-  ```
+   npm run dev
+   ```
   The frontend application will be available at `http://localhost:5173`.
 
 ## 📂 Project Structure

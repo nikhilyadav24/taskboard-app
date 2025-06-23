@@ -9,6 +9,7 @@ import { BACKEND_URL } from '../constants/config';
 const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
   const { isDark } = useTheme();
   const [users, setUsers] = useState([]);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/users`)
@@ -20,14 +21,19 @@ const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
                      task.assignedTo ? [task.assignedTo] : [];
 
   const assignedUsers = assigneeIds.map(id => 
-    users.find(member => member.id === id || member._id === id)
+    users.find(member => member.id === id)
   ).filter(Boolean);
 
-  const creator = users.find(member => member.id === task.createdBy || member._id === task.createdBy);
+  const creator = users.find(member => member.id === task.createdBy);
   const priorityConfig = PRIORITY_CONFIG[task.priority];
 
   return (
-    <div className={`rounded-lg p-3 sm:p-4 shadow-md mb-3 sm:mb-4 bg-white dark:bg-gray-800 border ${isDragging ? 'border-blue-500' : 'border-transparent'}`}>
+    <div
+      className={`rounded-lg p-3 sm:p-4 shadow-md mb-3 sm:mb-4 bg-white dark:bg-gray-800 border ${isDragging ? 'border-blue-500' : 'border-transparent'} transition-all duration-300 ease-in-out ${isHovered ? 'z-20 scale-105 ring-2 ring-blue-400 shadow-2xl' : ''}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{ position: 'relative', overflow: 'visible' }}
+    >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <button className="cursor-move text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex-shrink-0">
@@ -44,15 +50,17 @@ const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
           </button>
         </div>
       </div>
-      <div className="mb-2 text-xs sm:text-sm dark:text-gray-200 line-clamp-2">
-        <div dangerouslySetInnerHTML={{ __html: renderMarkdown(task.description) }} />
+      <div className="mb-2 text-xs sm:text-sm dark:text-gray-200">
+        <div
+          className={isHovered ? '' : 'line-clamp-2'}
+          dangerouslySetInnerHTML={{ __html: renderMarkdown(task.description) }}
+        />
       </div>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+      <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-wrap items-center gap-2 w-full">
           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${priorityConfig.color}`}>
             <span className="mr-1">{priorityConfig.icon}</span>
-            <span className="hidden sm:inline">{priorityConfig.label}</span>
-            <span className="sm:hidden">{priorityConfig.label.charAt(0)}</span>
+            <span>{priorityConfig.label}</span>
           </span>
           {task.dueDate && (
             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
@@ -61,20 +69,30 @@ const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
                 : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
             }`}>
               <Calendar className="w-3 h-3 mr-1" />
-              <span className="hidden sm:inline">{formatDate(task.dueDate)}</span>
-              <span className="sm:hidden">{formatDate(task.dueDate).split(' ')[0]}</span>
+              <span>{formatDate(task.dueDate)}</span>
             </span>
           )}
         </div>
         {assignedUsers.length > 0 && (
-          <div className="flex items-center space-x-1">
-            {assignedUsers.slice(0, 2).map(user => (
-              <div key={user._id || user.id} className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium" title={user.name}>
-                {user.avatar}
-              </div>
-            ))}
-            {assignedUsers.length > 2 && (
-              <div className="text-xs text-gray-500">+{assignedUsers.length - 2}</div>
+          <div className={`flex ${isHovered ? 'flex-wrap gap-2 dark:bg-blue-900/40 p-2 rounded-lg ' : 'items-center space-x-1'} transition-all duration-500 ease-in-out w-full`} style={{minWidth: isHovered ? 0 : undefined, maxWidth: isHovered ? '100%' : undefined}}>
+            {isHovered ? (
+              assignedUsers.map(user => (
+                <div key={user.id} className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-full text-xs text-blue-800 dark:text-blue-200 font-medium whitespace-nowrap">
+                  <span className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">{user.avatar}</span>
+                  <span className="truncate max-w-[6rem]">{user.name}</span>
+                </div>
+              ))
+            ) : (
+              <>
+                {assignedUsers.slice(0, 5).map(user => (
+                  <div key={user.id} className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium" title={user.name}>
+                    {user.avatar}
+                  </div>
+                ))}
+                {assignedUsers.length > 5 && (
+                  <div className="text-xs text-gray-500">+{assignedUsers.length - 5}</div>
+                )}
+              </>
             )}
           </div>
         )}
@@ -96,7 +114,7 @@ const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
           <span className={`text-xs ${
             isDark ? 'text-gray-400' : 'text-gray-500'
           }`}>
-            Created by Unknown{task.createdBy ? ` (${task.createdBy})` : ''}
+            Created by Unknown
           </span>
         </div>
       )}

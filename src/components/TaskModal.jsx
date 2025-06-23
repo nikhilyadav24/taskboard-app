@@ -9,13 +9,21 @@ const TaskModal = ({ task = null, onSave, onCancel, columnId, currentUser, users
     ? (Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo])
     : [];
 
+  // Helper to extract user ID from possible object or string
+  function getUserId(val) {
+    if (!val) return '';
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object' && (val._id || val.id)) return val._id || val.id;
+    return '';
+  }
+
   const [formData, setFormData] = useState({
     title: task?.title || '',
     description: task?.description || '',
     priority: task?.priority || 'medium',
     dueDate: task?.dueDate || '',
     assignedTo: initialAssignees,
-    createdBy: task?.createdBy || (currentUser?._id || '')
+    createdBy: getUserId(task?.createdBy) || (currentUser?._id || '')
   });
 
   useEffect(() => {
@@ -27,12 +35,11 @@ const TaskModal = ({ task = null, onSave, onCancel, columnId, currentUser, users
     const finalFormData = {
       ...formData,
       assignedTo: formData.assignedTo.map(id => {
-        const user = users.find(u => u.id === id || u._id === id);
-        return user ? (user.id || user._id) : id;
+        const user = users.find(u => u.id === id);
+        return user ? user.id : id;
       }),
-      createdBy: currentUser?._id || ''
+      createdBy: currentUser?.id || ''
     };
-    console.log('Saving task with formData:', finalFormData);
     if (finalFormData.title.trim()) {
       const taskData = {
         ...finalFormData,

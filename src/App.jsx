@@ -33,7 +33,20 @@ const TaskBoardApp = () => {
   const fetchBoards = () => {
     fetch(`${BACKEND_URL}/api/boards`)
       .then(res => res.json())
-      .then(data => setBoards(data));
+      .then(data => {
+        // Normalize assignedTo and createdBy for all tasks
+        const normalizeTask = (task) => ({
+          ...task,
+          assignedTo: (Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo])
+            .map(u => (typeof u === 'object' ? (u.id || u._id) : u)),
+          createdBy: typeof task.createdBy === 'object' ? (task.createdBy.id || task.createdBy._id) : task.createdBy,
+        });
+        const normalizedBoards = data.map(board => ({
+          ...board,
+          tasks: board.tasks.map(normalizeTask),
+        }));
+        setBoards(normalizedBoards);
+      });
   };
 
   useEffect(() => {
@@ -59,7 +72,10 @@ const TaskBoardApp = () => {
   }, []);
 
   useEffect(() => {
-    if (user) fetchBoards();
+    if (user) {
+      fetchBoards();
+      fetchUsers();
+    }
   }, [user]);
 
   useEffect(() => {
@@ -155,8 +171,8 @@ const TaskBoardApp = () => {
                 <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <defs>
                     <linearGradient id="taskboard-logo-gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                      <stop stop-color="#3b82f6" />
-                      <stop offset="1" stop-color="#a21caf" />
+                      <stop stopColor="#3b82f6" />
+                      <stop offset="1" stopColor="#a21caf" />
                     </linearGradient>
                   </defs>
                   <rect x="4" y="4" width="24" height="24" rx="6" fill="url(#taskboard-logo-gradient)" />
@@ -172,55 +188,48 @@ const TaskBoardApp = () => {
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Project Management Made Simple</p>
               </div>
             </div>
-
-            {/* User Info and Actions */}
-            <div className="flex items-center gap-2 sm:gap-4">
-              {/* User Info FIRST */}
-              <div className="flex items-center gap-2 sm:gap-3 order-1">
-
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-semibold">
-                    {user.name || user.username}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
-                </div>
+            {/* User Info and Actions - responsive layout */}
+            <div className="flex flex-row sm:flex-row w-full sm:w-auto justify-between items-center gap-2 sm:gap-4 ml-0 sm:ml-auto mt-3 sm:mt-0">
+              <div className="flex items-center gap-2">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm sm:text-base font-semibold">
                   {user.name ? user.name.split(' ').map(n => n[0]).join('') : user.username[0].toUpperCase()}
                 </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold">{user.name || user.username}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
+                </div>
               </div>
-
-              {/* Theme Toggle SECOND */}
-              <button
-                onClick={toggleTheme}
-                className={`p-2 rounded-lg transition-all duration-200 order-2 ${
-                  isDark 
-                    ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                }`}
-                title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              >
-                {isDark ? (
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+              <div className="flex items-center gap-2 sm:gap-4">
+                <button
+                  onClick={toggleTheme}
+                  className={`p-2 rounded-lg transition-all duration-200 order-2 ${
+                    isDark 
+                      ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                  }`}
+                  title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                >
+                  {isDark ? (
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                    </svg>
+                  )}
+                </button>
+                <button 
+                  onClick={handleLogout} 
+                  className="btn-secondary flex items-center text-xs sm:text-sm px-3 sm:px-4 py-2 order-3"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                  </svg>
-                )}
-              </button>
-
-              {/* Sign Out Button LAST */}
-              <button 
-                onClick={handleLogout} 
-                className="btn-secondary flex items-center text-xs sm:text-sm px-3 sm:px-4 py-2 order-3"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span className="hidden sm:inline">Sign Out</span>
-                <span className="sm:hidden">Out</span>
-              </button>
+                  <span className="hidden sm:inline">Sign Out</span>
+                  <span className="sm:hidden">Sign Out</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

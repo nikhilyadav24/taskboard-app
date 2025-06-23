@@ -74,7 +74,7 @@ const TaskCard = ({ task, onEdit, onDelete, isDragging }) => {
           )}
         </div>
         {assignedUsers.length > 0 && (
-          <div className={`flex ${isHovered ? 'flex-wrap gap-2 dark:bg-blue-900/40 p-2 rounded-lg ' : 'items-center space-x-1'} transition-all duration-500 ease-in-out w-full`} style={{minWidth: isHovered ? 0 : undefined, maxWidth: isHovered ? '100%' : undefined}}>
+          <div className={`flex ${isHovered ? 'flex-wrap gap-2 p-2 rounded-lg ' : 'items-center space-x-1'} transition-all duration-500 ease-in-out w-full`} style={{minWidth: isHovered ? 0 : undefined, maxWidth: isHovered ? '100%' : undefined}}>
             {isHovered ? (
               assignedUsers.map(user => (
                 <div key={user.id} className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-full text-xs text-blue-800 dark:text-blue-200 font-medium whitespace-nowrap">
